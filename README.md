@@ -117,3 +117,7 @@ La versión inicial se publica con revisión estática y de sintaxis. **No se ej
 ## Autoría
 
 Creado a partir de una idea y herramienta personal de **[Germán Bartoli](https://github.com/GermanBartoli)**. Las mejoras y la documentación de esta versión se prepararon con asistencia de Codex. El repositorio es público; no incluye una licencia de software libre.
+
+## Guías y comunidad
+
+[Guía de uso](GUIA_DE_USO.md) · [Preguntas frecuentes](PREGUNTAS_FRECUENTES.md) · [Cómo colaborar](CONTRIBUTING.md) · [Código de conducta](CODE_OF_CONDUCT.md)
