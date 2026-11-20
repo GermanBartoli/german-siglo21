@@ -6,19 +6,19 @@ Idea y proyecto de **Germán Bartoli**. Herramienta personal e independiente par
 
 ## Descargar y empezar
 
-1. Descargá **[German-Siglo21-v1.0.0.zip](https://github.com/GermanBartoli/german-siglo21/releases/latest/download/German-Siglo21-v1.0.0.zip)** desde la [última versión](https://github.com/GermanBartoli/german-siglo21/releases/latest).
+1. Descargá **[German-Siglo21-v1.1.0.zip](https://github.com/GermanBartoli/german-siglo21/releases/latest/download/German-Siglo21-v1.1.0.zip)** desde la [última versión](https://github.com/GermanBartoli/german-siglo21/releases/latest).
 2. Hacé clic derecho sobre el ZIP → **Extraer todo**. No lo ejecutes desde adentro del ZIP.
-3. Abrí la carpeta extraída y hacé doble clic en **Iniciar.cmd**.
-4. Elegí **1** para probar únicamente la cámara o **2** para ver una simulación.
-5. Para preparar el equipo realmente, editá **configuracion.psd1** con el Bloc de notas y seguí las instrucciones de abajo.
+3. Guardá tu trabajo y hacé doble clic en **MARISOL APRETA ACÁ.cmd** o **Iniciar.cmd**. Ambos cierran las aplicaciones de la lista, incluido wallpaper32.exe, y detienen los servicios de Brave que Windows permita. Si una aplicación sigue abierta tras el cierre normal, fuerzan su cierre.
+4. La cámara se abre en Edge. Si pide permiso, elegí **Permitir**. La ventana se cierra después de recibir cinco segundos de video.
+5. Para usar el menú, abrí **Iniciar con pasos.cmd**.
 
 **No necesita instalación, Python, Node.js ni paquetes adicionales.** Requiere Windows 10/11, Windows PowerShell 5.1 y Microsoft Edge para la cámara. Conservá todos los archivos y la carpeta `src` juntos.
 
-> La descarga inicia en modo seguro: `ModoSimulacion = $true` y todas las opciones de cierre, pausa y detención están en `$false`. No cierra Codex ni pausa Windows de fábrica.
+> El menú usa la configuración inicial de simulación. El inicio directo realiza los cierres y deja Buscar y Widgets sin pausar.
 
 ## ¿Qué hace?
 
-- Abre una ventana de Edge con una prueba local de cámara. Al pulsar el botón y autorizar el acceso, muestra video durante tres segundos y comprueba la recepción de cuadros.
+- Abre una ventana de Edge con una prueba local de cámara. Al autorizar el acceso, muestra video durante cinco segundos y comprueba la recepción de cuadros.
 - Permite cerrar navegadores, aplicaciones de comunicación, captura y asistentes de IA de listas conocidas.
 - Conserva la posibilidad de **pausar Buscar y Widgets de Windows** y cerrar sus procesos WebView2 identificados.
 - Permite detener temporalmente los servicios de actualización de Brave `brave` y `bravem`.
@@ -33,7 +33,7 @@ Es una ayuda previa al examen para cerrar programas que no necesitás. **No ocul
 2. Antes de iniciar el examen, abrí `configuracion.psd1` con el Bloc de notas.
 3. Cambiá `ModoSimulacion = $true` por `ModoSimulacion = $false`.
 4. Activá con `$true` únicamente las acciones que necesites. Para pausar los componentes de Windows, activá `PausarBuscar` y/o `PausarWidgets`. `CerrarCodex` permanece en `$false` hasta que lo cambies explícitamente.
-5. Abrí `Iniciar.cmd`, elegí **3**, revisá la lista y escribí **PREPARAR** cuando lo solicite.
+5. Abrí `Iniciar con pasos.cmd`, elegí **3**, revisá la lista y escribí **PREPARAR** cuando lo solicite.
 6. Completá la prueba de cámara. Si falla, la preparación se cancela antes de cerrar o pausar aplicaciones.
 7. Revisá los pendientes y abrí la plataforma oficial de examen.
 8. Cuando termines, ejecutá **Restaurar.cmd** para reactivar lo que haya registrado el programa.
@@ -50,6 +50,7 @@ Usá los valores de PowerShell **`$true`** y **`$false`**, sin comillas. El prog
 | `ProbarCamara` | `$true` | Comprueba la cámara antes de la preparación real. |
 | `CerrarNavegadores` | `$false` | Cierra los navegadores y componentes de Brave de la lista. |
 | `CerrarComunicacion` | `$false` | Teams, Zoom, Discord, Skype, Slack, Telegram y WhatsApp. |
+| `CerrarWallpaper` | `$false` | Cierra wallpaper32.exe. |
 | `CerrarCaptura` | `$false` | OBS, ShareX, Snagit y componentes de Camtasia de la lista. |
 | `CerrarAsistentesIA` | `$false` | ChatGPT, Claude y Copilot de escritorio. |
 | `CerrarCodex` | `$false` | Codex, codex-app y codex-desktop. |
@@ -68,7 +69,7 @@ Las listas exactas se mantienen en `src/Preparacion.ps1`. No se cierran procesos
 
 | Archivo u opción | Comportamiento |
 | --- | --- |
-| `Iniciar.cmd` | Abre el menú principal. |
+| `Iniciar con pasos.cmd` | Abre el menú principal. |
 | `Simular.cmd` | Simula siempre, aunque hayas desactivado `ModoSimulacion`. |
 | Opción 1 del menú | Activa solamente la prueba de cámara; ignora el modo de simulación porque la elegís explícitamente. |
 | `Restaurar.cmd` | Restaura las acciones registradas aunque `ModoSimulacion` esté activo. |

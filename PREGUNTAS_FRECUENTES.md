@@ -2,7 +2,7 @@
 
 ## ¿Cómo compruebo la cámara antes de una simulación?
 
-Extraé el ZIP completo, abrí **Iniciar.cmd** y elegí la opción **1** para probar únicamente la cámara.
+Extraé el ZIP completo, abrí **Iniciar con pasos.cmd** y elegí la opción **1** para probar únicamente la cámara.
 
 ## ¿Qué datos ayudan a reproducir un error?
 

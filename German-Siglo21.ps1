@@ -1,6 +1,6 @@
 ﻿#Requires -Version 5.1
 [CmdletBinding()]
-param([switch]$Simular, [switch]$SoloCamara, [switch]$Restaurar)
+param([switch]$Simular, [switch]$SoloCamara, [switch]$Restaurar, [switch]$Directo)
 $ErrorActionPreference = 'Stop'
 $bloqueo = $null
 $tomado = $false
@@ -12,7 +12,7 @@ try {
     if (-not $tomado) { throw 'Ya hay una instancia de German Siglo21 abierta. Cerrala primero.' }
     . (Join-Path $PSScriptRoot 'src\Preparacion.ps1')
     . (Join-Path $PSScriptRoot 'src\Camara.ps1')
-    if (@($Simular,$SoloCamara,$Restaurar | Where-Object { $_ }).Count -gt 1) {
+    if (@($Simular,$SoloCamara,$Restaurar,$Directo | Where-Object { $_ }).Count -gt 1) {
         throw 'Usa un solo modo a la vez.'
     }
     if ($Restaurar) {
@@ -20,6 +20,19 @@ try {
     }
     $config = Read-Configuracion (Join-Path $PSScriptRoot 'configuracion.psd1')
     Write-Host "`nGERMAN SIGLO21 | Preparacion para rendir virtualmente`n" -ForegroundColor Cyan
+    if ($Directo) {
+        foreach ($grupo in (Get-Grupos).Keys) { $config[$grupo] = $true }
+        $config.CerrarWebViewWidgets = $true
+        $config.DetenerServiciosBrave = $true
+        $config.ForzarCierre = $true
+        $config.PausarBuscar = $false
+        $config.PausarWidgets = $false
+        $plan = @(Get-Plan $config)
+        $correcto = Invoke-Plan -Plan $plan -Config $config
+        $camara = Test-Camara
+        Write-Host ('CAMARA: ' + $camara.detail)
+        if ($correcto -and $camara.ok) { exit 0 } else { exit 1 }
+    }
     if (-not $Simular -and -not $SoloCamara) {
         Write-Host '1. Probar solo la camara (no cierra aplicaciones)'
         Write-Host '2. Ver simulacion (no realiza cambios)'

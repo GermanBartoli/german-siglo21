@@ -4,6 +4,7 @@
     ProbarCamara = $true
     CerrarNavegadores = $false
     CerrarComunicacion = $false
+    CerrarWallpaper = $false
     CerrarCaptura = $false
     CerrarAsistentesIA = $false
     CerrarCodex = $false

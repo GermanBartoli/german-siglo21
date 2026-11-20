@@ -1,5 +1,10 @@
 # Historial de cambios
 
+## 1.1.0 — 20 de noviembre de 2026
+
+- Inicio directo con cierre de aplicaciones, incluido wallpaper32.exe, y cinco segundos de cámara.
+- Menú disponible en Iniciar con pasos.cmd.
+
 ## 1.0.0 — 16 de noviembre de 2026
 
 - Presentación del proyecto como Germán Siglo21, con autoría de Germán Bartoli.

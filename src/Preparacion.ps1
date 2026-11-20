@@ -2,8 +2,9 @@
 function Read-Configuracion {
     param([string]$Ruta)
     $config = Import-PowerShellDataFile -LiteralPath $Ruta
+    if (-not $config.ContainsKey('CerrarWallpaper')) { $config.CerrarWallpaper = $false }
     $booleanos = @('ModoSimulacion','ProbarCamara','CerrarNavegadores','CerrarComunicacion',
-        'CerrarCaptura','CerrarAsistentesIA','CerrarCodex','PausarBuscar','PausarWidgets',
+        'CerrarWallpaper','CerrarCaptura','CerrarAsistentesIA','CerrarCodex','PausarBuscar','PausarWidgets',
         'CerrarWebViewWidgets','DetenerServiciosBrave','ForzarCierre')
     foreach ($nombre in $booleanos) {
         if (-not $config.ContainsKey($nombre) -or $config[$nombre] -isnot [bool]) {
@@ -28,6 +29,7 @@ function Get-Grupos {
         CerrarComunicacion = @('Teams','ms-teams','Zoom','Discord','Skype','Slack','Telegram','WhatsApp')
         CerrarCaptura = @('obs64','obs32','ShareX','Snagit32','SnagitEditor','CamtasiaStudio','CamRecorder')
         CerrarAsistentesIA = @('ChatGPT','Claude','Copilot')
+        CerrarWallpaper = @('wallpaper32')
         CerrarCodex = @('Codex','codex-app','codex-desktop')
     }
 }
