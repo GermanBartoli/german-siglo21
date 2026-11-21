@@ -6,24 +6,33 @@ Idea y proyecto de **Germán Bartoli**. Herramienta personal e independiente par
 
 ## Descargar y empezar
 
-1. Descargá **[German-Siglo21-v1.1.0.zip](https://github.com/GermanBartoli/german-siglo21/releases/latest/download/German-Siglo21-v1.1.0.zip)** desde la [última versión](https://github.com/GermanBartoli/german-siglo21/releases/latest).
+1. Descargá **[German-Siglo21-v1.2.0.zip](https://github.com/GermanBartoli/german-siglo21/releases/latest/download/German-Siglo21-v1.2.0.zip)** desde la [última versión](https://github.com/GermanBartoli/german-siglo21/releases/latest).
 2. Hacé clic derecho sobre el ZIP → **Extraer todo**. No lo ejecutes desde adentro del ZIP.
-3. Guardá tu trabajo y hacé doble clic en **MARISOL APRETA ACÁ.cmd** o **Iniciar.cmd**. Ambos cierran las aplicaciones de la lista, incluido wallpaper32.exe, y detienen los servicios de Brave que Windows permita. Si una aplicación sigue abierta tras el cierre normal, fuerzan su cierre.
-4. La cámara se abre en Edge. Si pide permiso, elegí **Permitir**. La ventana se cierra después de recibir cinco segundos de video.
+3. Guardá tu trabajo y hacé doble clic en **MARISOL APRETA ACÁ.cmd** o **Iniciar.cmd**. Ambos cierran las aplicaciones de la lista, incluido wallpaper32.exe, y detienen los servicios de Brave que Windows permita. El inicio directo fuerza el cierre y muestra un resumen por nombre.
+4. La cámara se abre en una ventana nativa con el permiso de cámara de las aplicaciones de escritorio de Windows. La ventana se cierra después de recibir cinco segundos de video.
 5. Para usar el menú, abrí **Iniciar con pasos.cmd**.
 
-**No necesita instalación, Python, Node.js ni paquetes adicionales.** Requiere Windows 10/11, Windows PowerShell 5.1 y Microsoft Edge para la cámara. Conservá todos los archivos y la carpeta `src` juntos.
+**No necesita instalación, Python, Node.js ni paquetes adicionales.** Requiere Windows 10/11 con Windows PowerShell 5.1 y acceso a la cámara para aplicaciones de escritorio. Conservá todos los archivos y la carpeta `src` juntos.
 
-> El menú usa la configuración inicial de simulación. El inicio directo realiza los cierres y deja Buscar y Widgets sin pausar.
+> El menú usa la configuración inicial de simulación. El inicio directo realiza los cierres y vigila las reaperturas hasta restaurar, cerrar sesión o reiniciar.
 
-## ¿Qué hace?
+## Qué hace el inicio directo, en orden
 
-- Abre una ventana de Edge con una prueba local de cámara. Al autorizar el acceso, muestra video durante cinco segundos y comprueba la recepción de cuadros.
-- Permite cerrar navegadores, aplicaciones de comunicación, captura y asistentes de IA de listas conocidas.
-- Conserva la posibilidad de **pausar Buscar y Widgets de Windows** y cerrar sus procesos WebView2 identificados.
-- Permite detener temporalmente los servicios de actualización de Brave `brave` y `bravem`.
-- Muestra las acciones previstas antes de solicitar confirmación y avisa cuando un proceso sigue abierto o falta permiso.
-- Guarda registros locales para reanudar los procesos pausados y volver a iniciar los servicios que intentó detener.
+1. **Guardá tu trabajo antes del doble clic.** El cierre directo termina los procesos incluso si tienen cambios sin guardar.
+2. **Detiene los servicios de Brave** `brave` y `bravem` cuando están activos y Windows lo permite.
+3. **Prioriza los cierres de la sesión** de Chrome, Edge, Brave, ChatGPT, Wallpaper Engine (`wallpaper32`), Brave Crash Handler (32 y 64 bits), Brave Update y Brave Updater. Identifica el WebView2 de la lupa y de Widgets mediante la línea de comandos o su proceso padre.
+4. **Cierra el resto de la lista una vez** y muestra una línea por nombre.
+
+   | Grupo | Aplicaciones o procesos |
+   | --- | --- |
+   | Otros navegadores | Firefox, Opera y Opera GX, Vivaldi, Internet Explorer, Waterfox, LibreWolf, Floorp, Zen, Thorium, Chromium, Arc y DuckDuckGo |
+   | Comunicación | Teams, Zoom, Discord, Skype, Slack, Telegram y WhatsApp |
+   | Captura | OBS, ShareX, Snagit, Camtasia y CamRecorder |
+   | Otros asistentes | Claude, Copilot y Codex |
+
+5. **Vigila las reaperturas.** Un proceso de la sesión revisa los objetivos de los puntos 2 y 3, espera dos segundos entre revisiones y vuelve a cerrarlos si reaparecen. Pueden verse brevemente durante ese intervalo. Los WebView2 de otras aplicaciones siguen disponibles.
+6. **Muestra la cámara durante cinco segundos** desde el primer cuadro. Usa video en memoria y la configuración de privacidad de Windows. La ventana se cierra y libera la cámara.
+7. **Finaliza la vigilancia** al reiniciar, cerrar sesión o abrir **Restaurar.cmd**. Restaurar también intenta reactivar los servicios y componentes que quedaron registrados. Para volver a usar Chrome durante la misma sesión, abrí primero **Restaurar.cmd**.
 
 Es una ayuda previa al examen para cerrar programas que no necesitás. **No oculta procesos, no modifica el sistema de supervisión ni evita sus controles.** No garantiza que una plataforma acepte el equipo; completá siempre su chequeo oficial y seguí sus indicaciones.
 
@@ -86,16 +95,15 @@ El permiso de ejecución se aplica solo al proceso lanzado: no se cambia la pol�
 
 ## Privacidad y restauración
 
-- El código de la prueba no graba imágenes ni audio y no transmite video a un servidor externo. Usa HTTP en `127.0.0.1` y envía únicamente el resultado a la terminal local.
-- Edge usa un perfil temporal separado; puede dejar archivos en `%TEMP%`, pero el programa no guarda capturas. El navegador conserva sus propias funciones y políticas de red.
+- La vista nativa procesa los cuadros de video en memoria. La prueba usa solo la cámara y libera el dispositivo al salir.
 - Los registros de restauración se guardan en `%LOCALAPPDATA%\GermanSiglo21\estado`: contienen nombres de procesos/servicios, identificadores y la hora de inicio del proceso. No se suben al repositorio.
 - La restauración comprueba el identificador y la hora de inicio antes de reanudar un proceso, para no actuar sobre otro que reutilice el mismo número.
 - La restauración no vuelve a abrir programas cerrados ni recupera documentos sin guardar. Si no podés reactivar Buscar o Widgets, reiniciá Windows. No borres los registros mientras haya componentes pausados.
-- Los procesos o servicios pueden reiniciarse automáticamente. El resultado describe el momento de ejecución, no garantiza que permanezcan cerrados.
+- La vigilancia funciona con los permisos del usuario que abrió el lanzador. Windows puede denegar el cierre de procesos elevados o la detención de servicios.
 
 ## Solución de problemas
 
-**La cámara no funciona:** revisá conexión, obturador, permisos de cámara de Windows y Edge, y otras aplicaciones que puedan estar usándola. La prueba requiere interacción y vence después de 60 segundos. No comprueba el micrófono.
+**La cámara no funciona:** revisá conexión, obturador, el permiso de Windows para aplicaciones de escritorio, y otras aplicaciones que puedan estar usándola. La prueba espera hasta 25 segundos para obtener video y detecta interrupciones durante la vista previa. No comprueba el micrófono.
 
 **Un programa sigue abierto:** cerralo manualmente. Algunas aplicaciones ignoran la solicitud normal de cierre; `ForzarCierre` es opcional y puede descartar trabajo.
 

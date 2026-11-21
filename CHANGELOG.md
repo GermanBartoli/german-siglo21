@@ -1,5 +1,11 @@
 # Historial de cambios
 
+## 1.2.0 — 21 de noviembre de 2026
+
+- Cierre directo agrupado y vigilancia temporal de Chrome, Edge, Brave, ChatGPT, Wallpaper y WebView2 de Buscar y Widgets.
+- Vista nativa de cámara durante cinco segundos con el permiso de Windows para aplicaciones de escritorio.
+- Restaurar también finaliza la vigilancia.
+
 ## 1.1.0 — 20 de noviembre de 2026
 
 - Inicio directo con cierre de aplicaciones, incluido wallpaper32.exe, y cinco segundos de cámara.

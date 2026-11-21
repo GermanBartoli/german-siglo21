@@ -28,7 +28,8 @@ try {
         $config.PausarBuscar = $false
         $config.PausarWidgets = $false
         $plan = @(Get-Plan $config)
-        $correcto = Invoke-Plan -Plan $plan -Config $config
+        $correcto = Invoke-Plan -Plan $plan -Config $config -Directo
+        Start-Vigilancia
         $camara = Test-Camara
         Write-Host ('CAMARA: ' + $camara.detail)
         if ($correcto -and $camara.ok) { exit 0 } else { exit 1 }

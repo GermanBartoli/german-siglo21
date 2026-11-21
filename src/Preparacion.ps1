@@ -34,13 +34,40 @@ function Get-Grupos {
     }
 }
 
+function Get-Prioritarios {
+    return @('brave','chrome','msedge','ChatGPT','BraveCrashHandler','BraveCrashHandler64','BraveUpdate','BraveUpdater','wallpaper32')
+}
+
+function Get-WebViewDeBuscar {
+    param([int]$Sesion)
+    $procesos = @(Get-CimInstance Win32_Process -Filter "SessionId=$Sesion AND (Name='msedgewebview2.exe' OR Name='SearchHost.exe' OR Name='SearchApp.exe' OR Name='Widgets.exe' OR Name='WidgetService.exe')")
+    $porId = @{}
+    foreach ($actual in $procesos) { $porId[$actual.ProcessId] = $actual }
+    foreach ($web in $procesos) {
+        if ($web.Name -ne 'msedgewebview2.exe') { continue }
+        $actual = $web
+        while ($actual) {
+            if ($actual.Name -in @('SearchHost.exe','SearchApp.exe','Widgets.exe','WidgetService.exe') -or
+                $actual.CommandLine -match 'MicrosoftWindows\.Client\.(CBS|WebExperience)|--webview-exe-name="?(SearchHost|SearchApp|Widgets|WidgetService)\.exe(?:"|\s|$)') {
+                $web
+                break
+            }
+            $padre = $porId[$actual.ParentProcessId]
+            if (-not $padre -or $padre.CreationDate -ge $actual.CreationDate) { break }
+            $actual = $padre
+        }
+    }
+}
+
 function Get-Plan {
-    param([hashtable]$Config)
+    param([hashtable]$Config, [switch]$Prioritarios)
     $sesion = (Get-Process -Id $PID).SessionId
     $grupos = Get-Grupos
-    foreach ($grupo in $grupos.Keys) {
-        if (-not $Config[$grupo]) { continue }
-        foreach ($proceso in @(Get-Process -Name $grupos[$grupo] -ErrorAction SilentlyContinue)) {
+    $nombres = if ($Prioritarios) { Get-Prioritarios } else {
+        foreach ($grupo in $grupos.Keys) { if ($Config[$grupo]) { $grupos[$grupo] } }
+    }
+    if ($nombres) {
+        foreach ($proceso in @(Get-Process -Name $nombres -ErrorAction SilentlyContinue)) {
             if ($proceso.SessionId -eq $sesion -and $proceso.Id -ne $PID) {
                 [pscustomobject]@{ Accion='Cerrar'; Nombre=$proceso.ProcessName; Id=$proceso.Id; Inicio=$proceso.StartTime.Ticks }
             }
@@ -57,13 +84,11 @@ function Get-Plan {
         }
     }
     if ($Config.CerrarWebViewWidgets) {
-        foreach ($proceso in @(Get-CimInstance Win32_Process -Filter "name='msedgewebview2.exe'")) {
-            if ($proceso.SessionId -eq $sesion -and
-                $proceso.CommandLine -match 'MicrosoftWindows\.Client\.(CBS|WebExperience)') {
-                $actual = Get-Process -Id $proceso.ProcessId -ErrorAction SilentlyContinue
-                if ($actual) {
-                    [pscustomobject]@{ Accion='Cerrar'; Nombre=$actual.ProcessName; Id=$actual.Id; Inicio=$actual.StartTime.Ticks }
-                }
+        foreach ($proceso in (Get-WebViewDeBuscar $sesion)) {
+            $actual = Get-Process -Id $proceso.ProcessId -ErrorAction SilentlyContinue
+            if ($actual -and $actual.ProcessName -eq 'msedgewebview2' -and $actual.SessionId -eq $sesion -and
+                [Math]::Abs(($actual.StartTime - $proceso.CreationDate).TotalMilliseconds) -lt 1) {
+                [pscustomobject]@{ Accion='Cerrar'; Nombre=$actual.ProcessName; Id=$actual.Id; Inicio=$actual.StartTime.Ticks }
             }
         }
     }
@@ -105,7 +130,7 @@ function Get-CarpetaEstado {
 }
 
 function Invoke-Plan {
-    param([array]$Plan, [hashtable]$Config, [switch]$Simular)
+    param([array]$Plan, [hashtable]$Config, [switch]$Simular, [switch]$Directo)
     if ($Simular) {
         Write-Host 'SIMULACION: no se ejecutan cierres, pausas ni cambios de servicios.' -ForegroundColor Cyan
         $Plan | Format-Table Accion,Nombre,Id -AutoSize | Out-Host
@@ -114,6 +139,13 @@ function Invoke-Plan {
     $correcto = $true
     $carpeta = Get-CarpetaEstado
     New-Item -ItemType Directory -Path $carpeta -Force | Out-Null
+    $resumen = @{}
+    if ($Directo) {
+        $prioridad = @(Get-Prioritarios) + 'msedgewebview2'
+        $Plan = @($Plan | Sort-Object @{Expression={
+            if ($_.Accion -eq 'Detener servicio') { 0 } elseif ($_.Nombre -in $prioridad) { 1 } else { 2 }
+        }})
+    }
     foreach ($accion in $Plan) {
         try {
             if ($accion.Accion -eq 'Detener servicio') {
@@ -131,6 +163,9 @@ function Invoke-Plan {
                     $accion | ConvertTo-Json | Set-Content -LiteralPath $marca -Encoding UTF8
                     try { Set-Pausa -Id $accion.Id -Restaurar $false }
                     catch { Remove-Item -LiteralPath $marca; throw }
+                } elseif ($Directo) {
+                    try { $proceso.Kill() } catch { if (-not $proceso.HasExited) { throw } }
+                    if (-not $proceso.WaitForExit(2000)) { throw 'El proceso sigue activo.' }
                 } else {
                     [void]$proceso.CloseMainWindow()
                     if (-not $proceso.WaitForExit($Config.EsperaCierreSegundos * 1000)) {
@@ -139,16 +174,50 @@ function Invoke-Plan {
                     }
                 }
             }
-            Write-Host ("HECHO: $($accion.Accion) - $($accion.Nombre)")
+            if ($Directo) { $resumen[$accion.Nombre]++ }
+            else { Write-Host ("HECHO: $($accion.Accion) - $($accion.Nombre)") }
         } catch {
             $correcto = $false
             Write-Host ("PENDIENTE: $($accion.Nombre). " + $_.Exception.Message) -ForegroundColor Yellow
         }
     }
+    foreach ($nombre in ($resumen.Keys | Sort-Object)) { Write-Host ("HECHO: {0} ({1})" -f $nombre,$resumen[$nombre]) }
     return $correcto
 }
 
+function Start-Vigilancia {
+    $guion = Join-Path $PSScriptRoot 'Vigilar.ps1'
+    $argumentos = '-NoProfile -ExecutionPolicy Bypass -File "' + $guion + '"'
+    $hijo = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -ArgumentList $argumentos -WindowStyle Hidden -PassThru
+    try {
+        for ($intento = 0; $intento -lt 50; $intento++) {
+            $evento = $null
+            if ([Threading.EventWaitHandle]::TryOpenExisting('Local\GermanSiglo21Detener', [ref]$evento)) {
+                $evento.Dispose()
+                return
+            }
+            if ($hijo.HasExited) { break }
+            Start-Sleep -Milliseconds 100
+        }
+        throw 'No se pudo iniciar la vigilancia de cierres.'
+    } finally { $hijo.Dispose() }
+}
+
+function Stop-Vigilancia {
+    $evento = $null
+    if ([Threading.EventWaitHandle]::TryOpenExisting('Local\GermanSiglo21Detener', [ref]$evento)) {
+        try { [void]$evento.Set() } finally { $evento.Dispose() }
+        for ($i = 0; $i -lt 300; $i++) {
+            if (-not [Threading.EventWaitHandle]::TryOpenExisting('Local\GermanSiglo21Detener', [ref]$evento)) { return }
+            $evento.Dispose()
+            Start-Sleep -Milliseconds 100
+        }
+        throw 'La vigilancia sigue terminando. Volvé a ejecutar Restaurar.'
+    }
+}
+
 function Restore-Preparacion {
+    Stop-Vigilancia
     $carpeta = Get-CarpetaEstado
     $correcto = $true
     foreach ($archivo in @(Get-ChildItem -LiteralPath $carpeta -Filter '*.json' -ErrorAction SilentlyContinue)) {
